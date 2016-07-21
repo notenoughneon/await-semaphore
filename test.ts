@@ -18,7 +18,7 @@ describe('util', function() {
             var task1ran = false;
             var task2ran = false;
             Promise.all([
-                m.lock()
+                m.acquire()
                 .then(release => {
                     task1running = true;
                     task1ran = true;
@@ -29,7 +29,7 @@ describe('util', function() {
                         release();
                     });
                 }),
-                m.lock().
+                m.acquire().
                 then(release => {
                     assert(!task1running);
                     task2running = true;
@@ -52,8 +52,8 @@ describe('util', function() {
         });
         it('double lock deadlocks', function(done) {
             var m = new Mutex();
-            m.lock()
-            .then(r => m.lock())
+            m.acquire()
+            .then(r => m.acquire())
             .then(r => assert(false))
             .catch(done);
             delay(10)
@@ -62,11 +62,11 @@ describe('util', function() {
         it('double release ok', function(done) {
             var release;
             var m = new Mutex();
-            m.lock().
+            m.acquire().
                 then(r => release = r).
                 then(() => release()).
                 then(() => release());
-            m.lock().
+            m.acquire().
                 then(r => done());
         });
     });

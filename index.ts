@@ -13,7 +13,7 @@ export class Semaphore {
         }
     }
 
-    public lock() {
+    public acquire() {
         return new Promise<() => void>((res, rej) => {
             var task = () => {
                 var released = false;
