@@ -11,9 +11,9 @@ Also includes the `Mutex` class as a convenience for `new Semaphore(1)`.
 
 ## Examples
 
-### async/await style
+### async/await style (typescript)
 
-```
+```typescript
 import {Semaphore} from 'typed-semaphore';
 
 var sema = new Semaphore(10);
@@ -26,9 +26,9 @@ async function DoThing() {
 }
 ```
 
-### promise style
+### promise style (javascript)
 
-```
+```javascript
 var Semaphore = require('typed-semaphore').Semaphore;
 
 var sema = new Semaphore(10);
