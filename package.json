@@ -1,7 +1,7 @@
 {
-  "name": "p.sema",
+  "name": "typed-semaphore",
   "version": "0.1.0",
-  "description": "Promise style semaphores",
+  "description": "Typescript semaphore/mutex",
   "main": "index.js",
   "scripts": {
     "prebuild": "typings install",
