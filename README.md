@@ -5,7 +5,6 @@ A minimal semaphore implementation using ES6 promises.
 
 * `await`-able if you have async/await
 * can be used promise-chain style
-* only 40 lines
 
 Also includes the `Mutex` class as a convenience for `new Semaphore(1)`.
 

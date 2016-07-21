@@ -7,7 +7,7 @@ export function delay(ms: number) {
 
 describe('util', function() {
     describe('semaphore', function() {
-        it('limits concurrency to 2', async function() {
+        it('limits concurrency', async function() {
             var s = new Semaphore(2);
             var running = 0;
             var ran = 0;
@@ -24,6 +24,53 @@ describe('util', function() {
             await Promise.all([1,2,3,4,5].map(i => task()));
             assert.equal(ran, 5);
         });
+
+        it('limits concurrency (use syntax)', async function() {
+            var s = new Semaphore(2);
+            var running = 0;
+            var ran = 0;
+            var task = async () => {
+                assert(running <= 1);
+                running++;
+                await delay(10);
+                assert(running <= 2);
+                running--;
+                ran++;
+            };
+            await Promise.all([1,2,3,4,5].map(i => s.use(task)));
+            assert.equal(ran, 5);
+        });
+
+        it('use recovers from thrown exception', async function() {
+            var s = new Semaphore(2);
+            var running = 0;
+            var ran = 0;
+            var erred = 0;
+            var task = (i) => async () => {
+                assert(running <= 1);
+                running++;
+                await delay(10);
+                assert(running <= 2);
+                running--;
+                if (i === 2) {
+                    throw new Error('bogus');
+                }
+                ran++;
+            };
+            await s.use(task(1));
+            try {
+                await s.use(task(2));
+            } catch (err) {
+                erred++;
+            }
+            await s.use(task(3));
+            await s.use(task(4));
+            await s.use(task(5));
+            assert.equal(ran, 4);
+            assert.equal(erred, 1);
+            assert.equal(s.capacity, 2);
+        });
+
     });
 
     describe('mutex', function() {

@@ -29,6 +29,21 @@ export class Semaphore {
             process.nextTick(this.sched.bind(this));
         });
     }
+
+    public use<T>(f: () => Promise<T>) {
+        return this.acquire()
+        .then(release => {
+            return f()
+            .then((res) => {
+                release();
+                return res;
+            })
+            .catch((err) => {
+                release();
+                throw err;
+            });
+        });
+    }
 }
 
 export class Mutex extends Semaphore {
