@@ -7,7 +7,23 @@ export function delay(ms: number) {
 
 describe('util', function() {
     describe('semaphore', function() {
-        //FIXME
+        it('limits concurrency to 2', async function() {
+            var s = new Semaphore(2);
+            var running = 0;
+            var ran = 0;
+            var task = async () => {
+                var release = await s.acquire();
+                assert(running <= 1);
+                running++;
+                await delay(10);
+                assert(running <= 2);
+                running--;
+                ran++;
+                release();
+            };
+            await Promise.all([1,2,3,4,5].map(i => task()));
+            assert.equal(ran, 5);
+        });
     });
 
     describe('mutex', function() {
