@@ -68,7 +68,7 @@ describe('util', function() {
             await s.use(task(5));
             assert.equal(ran, 4);
             assert.equal(erred, 1);
-            assert.equal(s.capacity, 2);
+            assert.equal(s.count, 2);
         });
 
     });

@@ -1,14 +1,14 @@
 export class Semaphore {
     private tasks: (() => void)[] = [];
-    capacity: number;
+    count: number;
 
-    constructor(capacity: number) {
-        this.capacity = capacity;
+    constructor(count: number) {
+        this.count = count;
     }
 
     private sched() {
-        if (this.capacity > 0 && this.tasks.length > 0) {
-            this.capacity--;
+        if (this.count > 0 && this.tasks.length > 0) {
+            this.count--;
             this.tasks.shift()();
         }
     }
@@ -20,7 +20,7 @@ export class Semaphore {
                 res(() => {
                     if (!released) {
                         released = true;
-                        this.capacity++;
+                        this.count++;
                         this.sched();
                     }
                 });
