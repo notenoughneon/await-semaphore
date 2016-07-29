@@ -3,7 +3,7 @@ Awaitable semaphore/mutex
 
 A semaphore implementation using ES6 promises and supporting 3 styles:
 
-* async/await style (needs typescript or similar)
+* async/await style (needs typescript)
 * thunk style (automatic acquire/release)
 * promise style
 
