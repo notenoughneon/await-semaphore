@@ -3,25 +3,71 @@ Awaitable semaphore/mutex
 
 A semaphore implementation using ES6 promises and supporting 3 styles:
 
-* awaitable if you have async/await
-* thunk style via `Semaphore#use` (automatic acquire/release)
-* promise-chain style
+* async/await style (needs typescript or similar)
+* thunk style (automatic acquire/release)
+* promise style
 
-Also includes the `Mutex` class as a convenience for `new Semaphore(1)`.
+Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 
 ## API
 
-FIXME
+### new Semaphore(count: number)
+
+Create a new semaphore with the given count.
+
+```javascript
+import {Semaphore} from 'await-semaphore';
+
+var semaphore = new Semaphore(10);
+```
+
+### semaphore.acquire(): Promise<() => void>
+
+Acquire the semaphore and returns a promise for the release function. Be sure to handle release for exception case.
+
+```javascript
+semaphore.acquire()
+.then(release => {
+    //critical section...
+    doSomething()
+    .then(res => {
+        //...
+        release();
+    })
+    .catch(err => {
+        //...
+        release();
+    });
+});
+```
+
+### semaphore.use<T>(thunk: () => Promise<T>): Promise<T>
+
+Alternate method for using the semaphore by providing a thunk. This automatically handles acquire/release.
+
+```javascript
+semaphore.use(() => {
+    //critical section...
+});
+```
+
+### new Mutex()
+
+An alias for `new Semaphore(1)`. Mutex has the same methods as Semaphore.
+
+```javascript
+import {Mutex} from 'await-semaphore';
+
+var mutex = new Mutex();
+```
 
 ## Examples
 
-Fetching a list of urls, 10 at a time.
+Create a version of `fetch()` with concurrency limited to 10.
 
 ### async/await style (typescript)
 
 ```typescript
-import {Semaphore} from 'await-semaphore';
-
 var semaphore = new Semaphore(10);
 
 async function niceFetch(url) {
@@ -30,49 +76,31 @@ async function niceFetch(url) {
     release();
     return result;
 }
-
-function fetchAll(urls) {
-    return Promise.all(urls.map(niceFetch));
-}
 ```
 
 ### thunk style (javascript)
 
 ```javascript
-import {Semaphore} from 'await-semaphore';
-
 var semaphore = new Semaphore(10);
 
 function niceFetch(url) {
     return semaphore.use(() => fetch(url));
 }
-
-function fetchAll(urls) {
-    return Promise.all(urls.map(niceFetch));
-}
-
 ```
 
 ### promise style (javascript)
 
 ```javascript
-import {Semaphore} from 'await-semaphore';
-
 var semaphore = new Semaphore(10);
 
 function niceFetch(url) {
     return semaphore.acquire()
-        .then(release => {
-            return fetch(url)
-                .then(result => {
-                    release();
-                    return result;
-                });
+    .then(release => {
+        return fetch(url)
+        .then(result => {
+            release();
+            return result;
+        });
     });
 }
-
-function fetchAll(urls) {
-    return Promise.all(urls.map(niceFetch));
-}
-
 ```
