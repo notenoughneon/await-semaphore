@@ -9,7 +9,12 @@ export class Semaphore {
     private sched() {
         if (this.count > 0 && this.tasks.length > 0) {
             this.count--;
-            this.tasks.shift()();
+            let next = this.tasks.shift();
+            if (next === undefined) {
+                throw "Unexpected undefined value in tasks list";
+            }
+
+            next();
         }
     }
 
