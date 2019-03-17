@@ -100,6 +100,10 @@ function niceFetch(url) {
         .then(result => {
             release();
             return result;
+        }).
+        .catch(err => {
+            release();
+            throw result;
         });
     });
 }
