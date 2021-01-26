@@ -19,7 +19,7 @@ export class Semaphore {
     }
 
     public acquire() {
-        return new Promise<() => void>((res, rej) => {
+        return new Promise<() => void>((res, _) => {
             var task = () => {
                 var released = false;
                 res(() => {
