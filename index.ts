@@ -1,28 +1,13 @@
 export class Semaphore {
-    private tasks: (() => void)[] = [];
-    count: number;
+    private tasks: Map<number, Array<() => void>> = new Map();
 
-    constructor(count: number) {
-        this.count = count;
-    }
+    constructor(public count: number) { }
 
-    private sched() {
-        if (this.count > 0 && this.tasks.length > 0) {
-            this.count--;
-            let next = this.tasks.shift();
-            if (next === undefined) {
-                throw "Unexpected undefined value in tasks list";
-            }
-
-            next();
-        }
-    }
-
-    public acquire() {
-        return new Promise<() => void>((res, rej) => {
-            var task = () => {
-                var released = false;
-                res(() => {
+    public acquire(priority: number = 0): Promise<() => void> {
+        return new Promise((resolve) => {
+            const task = () => {
+                let released = false;
+                resolve(() => {
                     if (!released) {
                         released = true;
                         this.count++;
@@ -30,28 +15,56 @@ export class Semaphore {
                     }
                 });
             };
-            this.tasks.push(task);
+            if (!this.tasks.has(priority)) {
+                this.tasks.set(priority, []);
+            }
+            this.tasks.get(priority).push(task);
             if (process && process.nextTick) {
-                process.nextTick(this.sched.bind(this));
+                process.nextTick(() => this.sched());
             } else {
-                setImmediate(this.sched.bind(this));
+                setImmediate(() => this.sched());
             }
         });
     }
 
-    public use<T>(f: () => Promise<T>) {
+    public use<T>(f: () => Promise<T>): Promise<T> {
         return this.acquire()
-        .then(release => {
-            return f()
-            .then((res) => {
-                release();
-                return res;
-            })
-            .catch((err) => {
-                release();
-                throw err;
+            .then(release => {
+                return f()
+                    .then((res) => {
+                        release();
+                        return res;
+                    })
+                    .catch((err) => {
+                        release();
+                        throw err;
+                    });
             });
-        });
+    }
+
+    private hasPendingTasks(): boolean {
+        for (const tasks of this.tasks.values()) {
+            if (tasks.length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private sched(): void {
+        if (this.count > 0 && this.hasPendingTasks()) {
+            this.count--;
+            let currentPriority = 0;
+            while (!(this.tasks.has(currentPriority) && this.tasks.get(currentPriority).length > 0)) {
+                currentPriority += 1;
+            }
+            const next = this.tasks.get(currentPriority).shift();
+            if (next === undefined) {
+                throw "Unexpected undefined value in tasks list";
+            }
+
+            next();
+        }
     }
 }
 
