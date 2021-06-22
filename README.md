@@ -6,6 +6,7 @@ A semaphore implementation using ES6 promises and supporting 3 styles:
 * async/await style (needs typescript)
 * thunk style (automatic acquire/release)
 * promise style
+* optically set timeout to the lock.
 
 Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 
@@ -103,4 +104,15 @@ function niceFetch(url) {
         });
     });
 }
+```
+
+### Set timeout
+
+In order to avoid dead-lock in extreme situations, or any other needs, there is an option to set timeout to the semaphore
+so after X time duration the lock will be released altho the `release()` have never called.
+
+```javascript
+var semaphore = new Semaphore(1, Duration.FromMinutes(5));
+
+// Use the semaphore...
 ```

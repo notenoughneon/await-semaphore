@@ -1,5 +1,6 @@
-import * as assert from 'assert';
-import {Semaphore, Mutex} from './index';
+import assert from 'assert';
+import { Duration } from 'unitsnet-js';
+import {Semaphore, Mutex} from '../src/index';
 
 export function delay(ms: number) {
     return new Promise<void>((res, rej) => setTimeout(res, ms));
@@ -46,7 +47,7 @@ describe('util', function() {
             var running = 0;
             var ran = 0;
             var erred = 0;
-            var task = (i) => async () => {
+            var task = (i: number) => async () => {
                 assert(running <= 1);
                 running++;
                 await delay(10);
@@ -71,6 +72,28 @@ describe('util', function() {
             assert.equal(s.count, 2);
         });
 
+        it('concurrency lock timeout', async function() {
+            var s = new Semaphore(2, Duration.FromMilliseconds(10));
+            var parallel = 0;
+            var running = 0;
+            var ran = 0;
+            var task = async () => {
+                var release = await s.acquire();
+                running++;
+                
+                if (running > parallel) {
+                    parallel = running;
+                }
+                await delay(100);
+                running--;
+                ran++;
+                release();
+            };
+            await Promise.all([1,2,3,4,5].map(i => task()));
+            assert.strictEqual(ran, 5);
+            assert.strictEqual(parallel, 5);
+        });
+
     });
 
     describe('mutex', function() {
@@ -82,26 +105,22 @@ describe('util', function() {
             var task2ran = false;
             Promise.all([
                 m.acquire()
-                .then(release => {
+                .then(async release => {
                     task1running = true;
                     task1ran = true;
-                    return delay(10)
-                    .then(() => {
-                        assert(!task2running);
-                        task1running = false;
-                        release();
-                    });
+                    await delay(10);
+                    assert(!task2running);
+                    task1running = false;
+                    release();
                 }),
                 m.acquire().
-                then(release => {
+                then(async release => {
                     assert(!task1running);
                     task2running = true;
                     task2ran = true;
-                    return delay(10)
-                    .then(() => {
-                        task2running = false;
-                        release();
-                    });
+                    await delay(10);
+                    task2running = false;
+                    release();
                 })
             ])
             .then(() => {
@@ -123,7 +142,7 @@ describe('util', function() {
             .then(done);
         });
         it('double release ok', function(done) {
-            var release;
+            var release: () => void;
             var m = new Mutex();
             m.acquire().
                 then(r => release = r).
