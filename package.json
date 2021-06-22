@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "description": "Awaitable semaphore/mutex",
   "scripts": {
+    "prepare": "npm run build && npm run test",
     "build": "tsc",
     "test": "mocha -r ts-node/register tests/**/*.spec.ts"
   },
