@@ -112,6 +112,7 @@ In order to avoid dead-lock in extreme situations, or any other needs, there is 
 so after X time duration the lock will be released altho the `release()` have never called.
 
 ```javascript
+import { Duration } from 'unitsnet-js';
 var semaphore = new Semaphore(1, Duration.FromMinutes(5));
 
 // Use the semaphore...
