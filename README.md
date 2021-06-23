@@ -6,7 +6,7 @@ A semaphore implementation using ES6 promises and supporting 3 styles:
 * async/await style (needs typescript)
 * thunk style (automatic acquire/release)
 * promise style
-* New! - optically set timeout to the lock.
+* New! - optionally set timeout to the lock.
 
 Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 
