@@ -108,8 +108,8 @@ function niceFetch(url) {
 
 ### Set timeout
 
-In order to avoid dead-lock in extreme situations, or any other needs, there is an option to set timeout to the semaphore
-so after X time duration the lock will be released altho the `release()` have never called.
+In order to avoid dead-lock in extreme situations, or for any other needs, there is an option to set a timeout to the semaphore,
+so after X time duration the lock will be released although the `release()` have been never called.
 
 ```javascript
 import { Duration } from 'unitsnet-js';
